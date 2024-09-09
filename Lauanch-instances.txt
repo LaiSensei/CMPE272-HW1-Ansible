@@ -1,0 +1,16 @@
+# Launch two instances
+#aws ec2 create-key-pair --key-name MyNewKeyPair --query 'KeyMaterial' --output text > MyNewKeyPair.pem
+
+#chmod 400 MyNewKeyPair.pem
+
+
+aws ec2 run-instances \
+            --image-id ami-0d53d72369335a9d6 \
+            --count 2 \
+            --instance-type t2.micro \
+            --key-name MyNewKeyPair \
+            --security-group-ids sg-09de38a77b44607a0 \
+            --subnet-id subnet-0d9b32d0655218230 \
+            --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=SJSU-VMInstance}]'
+#Launching instances on us-west-1a
+echo "Instances are launching..."

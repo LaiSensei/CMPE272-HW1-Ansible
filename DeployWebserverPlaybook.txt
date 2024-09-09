@@ -1,0 +1,69 @@
+---
+- name: Deploy Webserver
+  hosts: webservers
+  become: true
+
+  tasks:
+    - name: Install Apache HTTP Server
+      apt:
+        name: apache2
+        state: present
+      tags:
+        - deploy
+
+    - name: Remove default Apache configuration
+      file:
+        path: /etc/apache2/sites-enabled/000-default.conf
+        state: absent
+      tags:
+        - deploy
+
+    - name: Deploy custom Apache site configuration
+      template:
+        src: templates/apache.conf.j2
+        dest: /etc/apache2/sites-available/webserver.conf
+      tags:
+        - deploy
+
+    - name: Enable Apache site configuration
+      ansible.builtin.shell:
+        cmd: a2ensite webserver.conf
+      tags:
+        - deploy
+
+    - name: Create index.html
+      copy:
+        content: "Hello World from SJSU-{{ inventory_hostname[-1] }}"
+        dest: /var/www/html/index.html
+      tags:
+        - deploy
+
+    - name: Ensure Apache is enabled and running
+      service:
+        name: apache2
+
+- name: Undeploy Webserver
+  hosts: webservers
+  become: true
+
+  tasks:
+    - name: Stop Apache HTTP Server
+      service:
+        name: apache2
+        state: stopped
+      tags:
+        - undeploy
+
+    - name: Remove Apache HTTP Server
+      apt:
+        name: apache2
+        state: absent
+      tags:
+        - undeploy
+
+    - name: Remove web content
+      file:
+        path: /var/www/html/index.html
+        state: absent
+      tags:
+        - undeploy
